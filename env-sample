@@ -1,0 +1,20 @@
+# General
+DEBUG=True
+
+# Security
+SECRET_KEY='@5v)h-v$0l94u6y-87m2y_!j8b*!&m5$dj6cs#c+dl(h*!97^@'
+
+ALLOWED_HOSTS='*'
+
+
+# Postgresql
+DB_HOST=
+DB_PORT=
+DB_NAME=
+DB_USER=
+DB_PASS=
+
+# DRF
+PAGE_SIZE=10
+
+SERVER_DOMAIN=
