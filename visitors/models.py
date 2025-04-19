@@ -71,7 +71,7 @@ def create_embeddings(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=Visitor)
 def delete_image_cropped(sender, instance, **kwargs):
-   if instance.imaage:
+   if instance.image:
       instance.image.delete(save=False)
 
    if instance.image_cropped:
