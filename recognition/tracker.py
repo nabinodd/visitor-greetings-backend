@@ -1,3 +1,5 @@
+from threading import Thread
+
 import cv2
 from ultralytics import YOLO
 
@@ -63,7 +65,7 @@ def run_recognition_pipeline():
                log_instance, image_path = save_recognized_image(frame, match)
 
                # Describe & speak
-               describe_and_greet(image_path, match.name)
+               Thread(target=describe_and_greet, args=(image_path, match.name)).start()
 
                tracked_names[pid] = match.name
                print(f"[LOGGED] {match.name}")
