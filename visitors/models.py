@@ -25,12 +25,16 @@ class Visitor(TimestampedModel):
 
 
 class Log(TimestampedModel):
-   visitor = models.ForeignKey(Visitor, on_delete = models.CASCADE)
-   reg_datetime = models.DateTimeField(null = True, blank = True)
-   remarks = models.CharField(max_length = 255, null = True, blank = True)
+   visitor = models.ForeignKey('Visitor', on_delete=models.CASCADE)
+   reg_datetime = models.DateTimeField(null=True, blank=True)
+   remarks = models.CharField(max_length=255, null=True, blank=True)
+   image = models.ImageField(
+      upload_to='visitor_photos/', 
+      null=True, blank=True
+   )
 
    class Meta:
       ordering = ('id',)
 
-   def __str__(self) -> str:
+   def __str__(self):
       return self.visitor.name

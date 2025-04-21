@@ -20,6 +20,13 @@ class VisitorAdmin(admin.ModelAdmin):
 
 @admin.register(Log)
 class LogAdmin(admin.ModelAdmin):
-   list_display = ('id', 'visitor', 'reg_datetime', 'remarks')
+   list_display = ('id', 'visitor', 'reg_datetime', 'image_preview', 'remarks')
    list_display_links = list_display
    search_fields = ('visitor__name',)
+
+   def image_preview(self, obj):
+      if obj.image:
+         return format_html(
+            '<img src="{}" style="max-height: 100px; max-width: 100px; border-radius: 10%;" />', 
+            obj.image.url
+         )
