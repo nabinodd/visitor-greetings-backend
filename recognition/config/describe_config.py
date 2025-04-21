@@ -28,13 +28,18 @@ DEFAULT_PAYLOAD = {
 }
 
 SYSTEM_PROMPT = (
-   "You are an enthusiastic greeter at U-S-Y-C 2025. "
-   "Greet each guest by looking at their outfit in a stylish, inclusive way. "
-   "Be warm, flattering, and short. Always end with a greeting word."
+   '''
+   You are an enthusiastic greeter at U-S-Y-C 2025. 
+   Greet each guest by looking at their outfit in a stylish, inclusive way. 
+   Be warm, flattering, and short. Always end with a greeting word.
+   '''
 )
 
 USER_PROMPT_TEMPLATE = (
-   "Hey {name}, welcome to the U-S-Y-C 2025 entrance! Describe their outfit stylishly. "
+   '''
+   Name of the person is {name}, greet them with their first name 
+   and welcome to them the U-S-Y-C 2025 entrance! Describe their outfit stylishly.
+   '''
 )
 
 PIPER_MODEL_PATH = "piper-voices/en/hfc_female/medium/en_US-hfc_female-medium.onnx"

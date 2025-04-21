@@ -8,7 +8,7 @@ from recognition.face_utils import detect_and_match_face
 from recognition.image_saver import save_recognized_image
 from visitors.models import Log
 
-CAMERA_SOURCE = 0
+CAMERA_SOURCE = 1
 CONF_THRESHOLD = 0.5
 IOU_THRESHOLD = 0.3
 CLASSES = [0] 
@@ -28,7 +28,11 @@ def run_recognition_pipeline():
       if not ret:
          break
 
-      results = model.track(frame, persist=True, conf=CONF_THRESHOLD, iou=IOU_THRESHOLD, classes=CLASSES, verbose=False)
+      results = model.track(
+          frame, persist=True, conf=CONF_THRESHOLD, 
+          iou=IOU_THRESHOLD, classes=CLASSES, verbose=False, 
+          device = 'mps'
+      )
       boxes = results[0].boxes
 
       if boxes.id is None:
