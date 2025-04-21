@@ -9,7 +9,7 @@ from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 from PIL import Image
 
-from .models import Visitor
+from .models import Visitor, Log
 from .utils import detect_and_crop_single_face
 
 
@@ -76,9 +76,15 @@ def create_cropped_and_embedding(sender, instance, created, **kwargs):
 
 
 @receiver(post_delete, sender=Visitor)
-def delete_all_images_on_delete(sender, instance, **kwargs):
+def delete_visitor_images(sender, instance, **kwargs):
    """Cleanup both original and cropped images when Visitor is deleted."""
    if instance.image:
       instance.image.delete(save=False)
    if instance.image_cropped:
       instance.image_cropped.delete(save=False)
+
+@receiver(post_delete, sender=Log)
+def delete_log_images(sender, instance, **kwargs):
+   """Cleanup both original and cropped images when Visitor is deleted."""
+   if instance.image:
+      instance.image.delete(save=False)
