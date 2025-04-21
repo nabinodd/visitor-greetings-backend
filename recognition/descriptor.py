@@ -7,13 +7,12 @@ import requests
 import sounddevice as sd
 from piper.voice import PiperVoice
 
-# from recognition.describe_config import (API_KEY, API_URL, DEFAULT_PAYLOAD,
-#                                          IMAGE_RESOLUTION, PIPER_MODEL_PATH,
-#                                          SYSTEM_PROMPT, USER_PROMPT_TEMPLATE)
-
-from recognition.config.describe_config import (API_KEY, API_URL, DEFAULT_PAYLOAD,
-                                   IMAGE_RESOLUTION, PIPER_MODEL_PATH,
-                                   SYSTEM_PROMPT, USER_PROMPT_TEMPLATE)
+from recognition.config.describe_config import (API_KEY, API_URL,
+                                                DEFAULT_PAYLOAD,
+                                                IMAGE_RESOLUTION,
+                                                PIPER_MODEL_PATH,
+                                                SYSTEM_PROMPT,
+                                                USER_PROMPT_TEMPLATE)
 
 # === Load Piper ===
 voice = PiperVoice.load(PIPER_MODEL_PATH)
