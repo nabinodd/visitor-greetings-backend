@@ -13,3 +13,4 @@ psycopg-binary==3.2.6
 tensorflow==2.19.0
 tensorflow-macos==2.16.2
 tf_keras==2.19.0
+ultralytics==8.3.111
