@@ -4,6 +4,7 @@ from ultralytics import YOLO
 from recognition.descriptor import describe_and_greet
 from recognition.face_utils import detect_and_match_face
 from recognition.image_saver import save_recognized_image
+from visitors.models import Log
 
 CAMERA_SOURCE = 0
 CONF_THRESHOLD = 0.5
@@ -54,6 +55,11 @@ def run_recognition_pipeline():
          match, face_box = detect_and_match_face(crop, x1, y1)
          if match:
                # Save frame + Log instance
+
+               if Log.objects.filter(visitor=match).exists():
+                  tracked_names[pid] = match.name
+                  continue
+
                log_instance, image_path = save_recognized_image(frame, match)
 
                # Describe & speak
