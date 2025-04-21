@@ -14,6 +14,7 @@ env = environ.Env()
 
 
 SECRET_KEY = env.str('SECRET_KEY')
+OPENAI_API_KEY = env.str('OPENAI_API_KEY')
 
 DEBUG = env.bool('DEBUG')
 

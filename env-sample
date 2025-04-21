@@ -3,7 +3,7 @@ DEBUG=True
 
 # Security
 SECRET_KEY='@5v)h-v$0l94u6y-87m2y_!j8b*!&m5$dj6cs#c+dl(h*!97^@'
-
+OPENAI_API_KEY=
 ALLOWED_HOSTS='*'
 
 

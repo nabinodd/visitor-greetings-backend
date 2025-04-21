@@ -16,6 +16,10 @@ celery.conf
 *.sql
 
 !units.json
-
 .vscode
 .DS_Store
+
+/piper-voices/
+*.jpg
+*.jpeg
+*.png
