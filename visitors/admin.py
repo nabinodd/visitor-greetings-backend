@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Log, Visitor
+from .models import Log, Visitor, Guest
 
 
 @admin.register(Visitor)
@@ -23,6 +23,20 @@ class LogAdmin(admin.ModelAdmin):
    list_display = ('id', 'visitor', 'reg_datetime', 'image_preview', 'remarks')
    list_display_links = list_display
    search_fields = ('visitor__name',)
+
+   def image_preview(self, obj):
+      if obj.image:
+         return format_html(
+            '<img src="{}" style="max-height: 100px; max-width: 100px; border-radius: 10%;" />', 
+            obj.image.url
+         )
+
+
+@admin.register(Guest)
+class GuestAdmin(admin.ModelAdmin):
+   list_display = ('id', 'created_at', 'greeting_text', 'image_preview')
+   list_display_links = list_display
+
 
    def image_preview(self, obj):
       if obj.image:

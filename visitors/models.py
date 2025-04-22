@@ -38,3 +38,17 @@ class Log(TimestampedModel):
 
    def __str__(self):
       return self.visitor.name
+
+
+class Guest(TimestampedModel):
+   greeting_text = models.TextField(null=True, blank=True)
+   image = models.ImageField(
+      upload_to='guest_photos/', 
+      null=True, blank=True
+   )
+
+   class Meta:
+      ordering = ('id',)
+
+   def __str__(self):
+      return f'guest_{self.id}_at_{self.created_at}'
