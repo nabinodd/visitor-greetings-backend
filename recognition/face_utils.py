@@ -11,7 +11,7 @@ DNN_NET = cv2.dnn.readNetFromCaffe(
 )
 
 FACE_DETECTION_THRESHOLD = 0.9
-FACE_IDENTIFICATION_THRESHOLD = 0.6
+FACE_IDENTIFICATION_THRESHOLD = 0.4
 
 def detect_and_match_face(person_crop, offset_x=0, offset_y=0):
    blob = cv2.dnn.blobFromImage(person_crop, 1.0, (300, 300),
