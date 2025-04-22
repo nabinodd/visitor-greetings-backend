@@ -1,5 +1,6 @@
 import base64
 import json
+import time
 
 import cv2
 import numpy as np
@@ -14,7 +15,8 @@ from recognition.config.describe_config import (API_KEY, API_URL,
                                                 SYSTEM_PROMPT,
                                                 USER_PROMPT_TEMPLATE)
 
-# === Load Piper ===
+speaking = False
+
 voice = PiperVoice.load(PIPER_MODEL_PATH)
 
 def preprocess_image(image_path, max_size):
@@ -62,7 +64,11 @@ def describe_and_greet(image_path, person_name):
    else:
       print(f"❌ GPT API error: {response.status_code}\n{response.text}")
 
-def speak(text):
+def speak(text, sleep = 0):
+   global speaking
+   if speaking:
+      return
+   speaking = True
    print(f"[TTS] {text}")
    stream = sd.OutputStream(samplerate=voice.config.sample_rate, channels=1, dtype='int16')
    stream.start()
@@ -70,3 +76,5 @@ def speak(text):
       stream.write(np.frombuffer(audio_bytes, dtype=np.int16))
    stream.stop()
    stream.close()
+   time.sleep(sleep)
+   speaking = False

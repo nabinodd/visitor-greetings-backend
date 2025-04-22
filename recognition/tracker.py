@@ -30,9 +30,9 @@ def run_recognition_pipeline():
          break
 
       results = model.track(
-          frame, persist=True, conf=CONF_THRESHOLD, 
-          iou=IOU_THRESHOLD, classes=CLASSES, verbose=False, 
-          device = 'mps'
+         frame, persist=True, conf=CONF_THRESHOLD, 
+         iou=IOU_THRESHOLD, classes=CLASSES, verbose=False, 
+         device = 'mps'
       )
       boxes = results[0].boxes
 
@@ -54,7 +54,7 @@ def run_recognition_pipeline():
          cv2.imshow("Visitor Recognition", frame)
          if cv2.waitKey(1) & 0xFF == ord("q"):
                break
-         speak(multiple_persons_str)
+         speak(multiple_persons_str, sleep = 5)
          continue
 
       for box in person_boxes:
