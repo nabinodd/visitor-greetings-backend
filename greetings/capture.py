@@ -35,17 +35,12 @@ def save_guest_image(image):
    guest = Guest.objects.create(image=django_file)
    return guest
 
-def capture_guest_image():
-   model = load_model()
-   cap = initialize_camera(camera_index=1)  # Adjust index if needed
-   warmup_camera(cap)
-
-   print("Camera ready. Looking for a sharp close person...")
-
+def capture_guest_image(cap, model):
+   """Capture a sharp close person using an existing camera and model."""
    while True:
       ret, frame = cap.read()
       if not ret:
-         break
+         continue
 
       display_frame = frame.copy()
       close_persons = []
@@ -65,19 +60,19 @@ def capture_guest_image():
                else:
                   far_persons.append((x1, y1, x2, y2))
 
-      # Handle far persons (blur them, red boxes)
+      # Handle far persons (blur + red boxes)
       for x1, y1, x2, y2 in far_persons:
          person_area = display_frame[y1:y2, x1:x2]
          blurred = cv2.GaussianBlur(person_area, (51, 51), 0)
          display_frame[y1:y2, x1:x2] = blurred
-         cv2.rectangle(display_frame, (x1, y1), (x2, y2), (0, 0, 255), 2)  # Red box
+         cv2.rectangle(display_frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
       # Handle close persons
       if len(close_persons) == 1:
          x1, y1, x2, y2, person_crop = close_persons[0]
          sharpness = calculate_sharpness(person_crop)
 
-         # Green box + sharpness text
+         # Green box + sharpness
          cv2.rectangle(display_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
          cv2.putText(display_frame, f'Sharpness: {sharpness:.2f}', (x1, y1 + 50),
                      cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
@@ -85,21 +80,19 @@ def capture_guest_image():
          if sharpness >= BLUR_THRESHOLD:
                guest = save_guest_image(person_crop)
                print(f"Captured sharp guest image with sharpness {sharpness:.2f}. Guest ID: {guest.id}")
-               cap.release()
-               cv2.destroyAllWindows()
+
+               # Show last frame (predictable display before TTS)
+               cv2.imshow("Preview", display_frame)
+               cv2.waitKey(1000)  # Display for 1 second
+
                return guest
 
       elif len(close_persons) > 1:
-         # Blur the whole frame, still draw green boxes
          display_frame = cv2.GaussianBlur(display_frame, (51, 51), 0)
          for x1, y1, x2, y2, _ in close_persons:
                cv2.rectangle(display_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-      # Show preview with overlays
+      # Show ongoing preview
       cv2.imshow("Preview", display_frame)
       if cv2.waitKey(1) & 0xFF == ord('q'):
-         break
-
-   cap.release()
-   cv2.destroyAllWindows()
-   return None
+         return 'EXIT'
