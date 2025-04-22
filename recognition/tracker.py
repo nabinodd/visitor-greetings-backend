@@ -9,7 +9,7 @@ from recognition.image_saver import save_recognized_image
 from visitors.models import Log
 
 CAMERA_SOURCE = 0
-CONF_THRESHOLD = 0.5
+CONF_THRESHOLD = 0.8
 IOU_THRESHOLD = 0.3
 CLASSES = [0]
 MIN_WIDTH = 150
@@ -30,8 +30,8 @@ def run_recognition_pipeline():
          break
 
       results = model.track(
-         frame, persist=True, conf=CONF_THRESHOLD, 
-         iou=IOU_THRESHOLD, classes=CLASSES, verbose=False, 
+         frame, persist = False, conf=CONF_THRESHOLD, 
+         iou = IOU_THRESHOLD, classes = CLASSES, verbose = False, 
          device = 'mps'
       )
       boxes = results[0].boxes
