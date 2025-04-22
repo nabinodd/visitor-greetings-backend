@@ -42,6 +42,6 @@ USER_PROMPT_TEMPLATE = (
    '''
 )
 
-PIPER_MODEL_PATH = "piper-voices/en/hfc_female/medium/en_US-hfc_female-medium.onnx"
+PIPER_MODEL_PATH = "piper-voices/en/ljspeech/medium/en_US-ljspeech-medium.onnx"
 
 IMAGE_RESOLUTION = 1024
