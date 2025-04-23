@@ -3,8 +3,8 @@ import time
 import cv2
 from django.core.management.base import BaseCommand
 
-from greetings.capture import (capture_guest_image, initialize_camera,
-                               load_model, warmup_camera)
+from greetings.capture import (capture_guest_image, flush_camera,
+                               initialize_camera, load_model, warmup_camera)
 from greetings.describe_and_greet import describe_and_greet
 
 
@@ -22,6 +22,7 @@ class Command(BaseCommand):
       try:
          while True:
                self.stdout.write("Looking for the next guest...")
+               flush_camera(cap, frames=10)
 
                guest = capture_guest_image(cap, model)
 
@@ -41,9 +42,14 @@ class Command(BaseCommand):
                   guest.greeting_text = description
                   guest.save()
                   self.stdout.write(self.style.SUCCESS(f"✅ Greeting saved for Guest {guest.id}: {description}"))
+                  time.sleep(0.5)
                else:
                   self.stderr.write(f"❌ Failed to generate greeting for Guest {guest.id}")
-               time.sleep(0.1)
+                  time.sleep(0.1)
+
+               # 🔥 FLUSH CAMERA to clear buffered frames before next cycle
+               flush_camera(cap, frames=10)
+               capture_guest_image(cap, model, overlay_only=True)
 
       finally:
          cap.release()

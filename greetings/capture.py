@@ -1,3 +1,4 @@
+import time
 from io import BytesIO
 
 import cv2
@@ -9,7 +10,8 @@ from visitors.models import Guest
 
 from .configurations import (DNN_FACE_DETECTION_CONFIDENCE,
                              ENABLE_SIZE_REPORTING, FACE_BLUR_THRESHOLD,
-                             GPU_ACCELERATION, HEIGHT_THRESHOLD,
+                             FONT_SCALE, FONT_THICKNESS, GPU_ACCELERATION,
+                             HEIGHT_THRESHOLD, OVERLAY_ONLY_TIME,
                              PERSON_BLUR_THRESHOLD, WIDTH_THRESHOLD,
                              YOLO_MODEL_PATH, YOLO_PERSON_CONFIDENCE_THRESHOLD)
 from .identify_guests import identify_guest
@@ -22,6 +24,8 @@ dnn_net = cv2.dnn.readNetFromCaffe(DNN_PROTO_PATH, DNN_MODEL_PATH)
 CENTER_OVERLAP_THRESHOLD = 0.9
 SAFE_ZONE_MARGIN = 0.3
 
+overlay_only_started_time = None
+
 def load_model():
    return YOLO(YOLO_MODEL_PATH)
 
@@ -32,6 +36,10 @@ def initialize_camera(camera_index=0):
    return cap
 
 def warmup_camera(cap, frames=30):
+   for _ in range(frames):
+      cap.read()
+
+def flush_camera(cap, frames=10):
    for _ in range(frames):
       cap.read()
 
@@ -71,9 +79,18 @@ def calculate_overlap_ratio(box1, box2):
    box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])
    return overlap_area / box1_area if box1_area > 0 else 0
 
-def capture_guest_image(cap, model):
+def capture_guest_image(cap, model, overlay_only=False):
    """Capture a sharp face in the center using an existing camera and model."""
+
+   global overlay_only_started_time
+   if overlay_only and overlay_only_started_time is None:
+      overlay_only_started_time = time.time()
+
    while True:
+      if overlay_only_started_time is not None and time.time() - overlay_only_started_time > OVERLAY_ONLY_TIME:
+         overlay_only_started_time = None
+         break
+
       ret, frame = cap.read()
       if not ret:
          continue
@@ -120,7 +137,7 @@ def capture_guest_image(cap, model):
          person_color = (0, 255, 0) if sharpness >= PERSON_BLUR_THRESHOLD else (0, 0, 255)
          cv2.rectangle(display_frame, (x1, y1), (x2, y2), person_color, 2)
          cv2.putText(display_frame, f'Person Sharpness: {sharpness:.2f}', (x1 + 10, y1 + 50),
-                     cv2.FONT_HERSHEY_SIMPLEX, 1, person_color, 2)
+                     cv2.FONT_HERSHEY_SIMPLEX, FONT_SCALE, person_color, FONT_THICKNESS)
 
          if sharpness >= PERSON_BLUR_THRESHOLD:
                face_crop, face_box = detect_face(person_crop)
@@ -136,9 +153,9 @@ def capture_guest_image(cap, model):
                   face_color = (0, 255, 0) if face_sharpness >= FACE_BLUR_THRESHOLD and face_centered else (0, 0, 255)
                   cv2.rectangle(display_frame, (abs_face_box[0], abs_face_box[1]), (abs_face_box[2], abs_face_box[3]), face_color, 2)
                   cv2.putText(display_frame, f'Face Sharpness: {face_sharpness:.2f}', (abs_face_box[0], abs_face_box[3] + 30),
-                              cv2.FONT_HERSHEY_SIMPLEX, 1, face_color, 2)
+                              cv2.FONT_HERSHEY_SIMPLEX, FONT_SCALE, face_color, FONT_THICKNESS)
 
-                  if face_sharpness >= FACE_BLUR_THRESHOLD and face_centered:
+                  if face_sharpness >= FACE_BLUR_THRESHOLD and face_centered and not overlay_only:
                      guest = save_guest_image(person_crop)
                      print(f"Captured sharp guest image with sharpness {sharpness:.2f}. Guest ID: {guest.id}")
 
