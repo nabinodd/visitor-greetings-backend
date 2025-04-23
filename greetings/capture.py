@@ -41,7 +41,7 @@ def capture_guest_image(cap, model):
       ret, frame = cap.read()
       if not ret:
          continue
-
+      frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
       display_frame = frame.copy()
       close_persons = []
       far_persons = []
