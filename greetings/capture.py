@@ -54,7 +54,7 @@ def capture_guest_image(cap, model):
                x1, y1, x2, y2 = map(int, box.xyxy[0])
                width, height = x2 - x1, y2 - y1
                person_crop = frame[y1:y2, x1:x2]
-
+               # print(width, height)
                if width >= WIDTH_THRESHOLD and height >= HEIGHT_THRESHOLD:
                   close_persons.append((x1, y1, x2, y2, person_crop))
                else:
@@ -74,7 +74,7 @@ def capture_guest_image(cap, model):
 
          # Green box + sharpness
          cv2.rectangle(display_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-         cv2.putText(display_frame, f'Sharpness: {sharpness:.2f}', (x1, y1 + 50),
+         cv2.putText(display_frame, f'Sharpness: {sharpness:.2f}', (x1 + 10, y1 + 50),
                      cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
          if sharpness >= BLUR_THRESHOLD:

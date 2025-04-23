@@ -1,16 +1,34 @@
 import base64
 import json
+import random
 
 import cv2
 import numpy as np
 import requests
+import requests.exceptions
 import sounddevice as sd
 from piper.voice import PiperVoice
 
 from .configurations import (API_KEY, API_URL, DEFAULT_PAYLOAD,
                              IMAGE_RESOLUTION, PIPER_MODEL_PATH, SYSTEM_PROMPT,
-                             USER_PROMPT_TEMPLATE)
+                             USER_PROMPT_TEMPLATE, API_TIMEOUT)
 
+# Prefetched fallback greetings
+prefetched_greetings = [
+   'Hey there, Welcome to U-S-Y-C 2025',
+   'Hello, Welcome to U-S-Y-C 2025',
+   'Hey!! Welcome to U-S-Y-C 2025',
+   'Welcome aboard! U-S-Y-C 2025 is ready to dazzle you.',
+   'Hey there! Step into the excitement of U-S-Y-C 2025.',
+   'Hello and welcome! Let U-S-Y-C 2025 amaze you.',
+   "Hey!! You've arrived at the heart of U-S-Y-C 2025!",
+   'Greetings! Get ready for the magic of U-S-Y-C 2025.',
+   'Welcome! The U-S-Y-C 2025 experience begins now.',
+   'Hello there! U-S-Y-C 2025 is thrilled to have you.',
+   'Hey you! Welcome to the unforgettable U-S-Y-C 2025.',
+   'Step right in! U-S-Y-C 2025 awaits your brilliance.',
+   'Welcome to U-S-Y-C 2025, where the energy is electric!',
+]
 
 def preprocess_image(image_path, max_size=IMAGE_RESOLUTION):
    """Load and resize image, then encode as base64."""
@@ -22,9 +40,9 @@ def preprocess_image(image_path, max_size=IMAGE_RESOLUTION):
    return base64.b64encode(buffer).decode('utf-8')
 
 def generate_description(image_path):
-   """Send image to OpenAI API and get a flattering description."""
+   """Send image to OpenAI API and get a flattering description or fallback greeting."""
    base64_image = preprocess_image(image_path)
-   user_prompt = USER_PROMPT_TEMPLATE  # No formatting needed
+   user_prompt = USER_PROMPT_TEMPLATE  # Assuming no formatting needed
 
    payload = {
       "model": DEFAULT_PAYLOAD["model"],
@@ -47,18 +65,25 @@ def generate_description(image_path):
       "Content-Type": "application/json"
    }
 
-   response = requests.post(API_URL, headers=headers, json=payload)
+   try:
+      response = requests.post(API_URL, headers=headers, json=payload, timeout = API_TIMEOUT)
 
-   if response.status_code == 200:
-      try:
-         description = json.loads(response.json()["choices"][0]["message"]["content"])["description"]
-         return description
-      except (KeyError, json.JSONDecodeError) as e:
-         print(f"❌ Error parsing GPT response: {e}")
-         return None
-   else:
-      print(f"❌ GPT API error: {response.status_code}\n{response.text}")
-      return None
+      if response.status_code == 200:
+         try:
+               description = json.loads(response.json()["choices"][0]["message"]["content"])["description"]
+               return description
+         except (KeyError, json.JSONDecodeError) as e:
+               print(f"❌ Error parsing GPT response: {e}")
+      else:
+         print(f"❌ GPT API error: {response.status_code}\n{response.text}")
+
+   except requests.exceptions.Timeout:
+      print("❌ GPT API request timed out.")
+
+   # Fallback: Pick a random greeting
+   fallback = random.choice(prefetched_greetings)
+   print(f"⚠️ Using fallback greeting: {fallback}")
+   return fallback
 
 def speak(text):
    """Speak the given text using Piper TTS."""

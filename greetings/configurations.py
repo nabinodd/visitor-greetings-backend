@@ -2,14 +2,16 @@ from django.conf import settings
 
 # YOLO model
 YOLO_MODEL_PATH = "yolov10n.pt"
-WIDTH_THRESHOLD = 700
-HEIGHT_THRESHOLD = 1400
-BLUR_THRESHOLD = 40
+
+WIDTH_THRESHOLD = 800
+HEIGHT_THRESHOLD = 800
+BLUR_THRESHOLD = 48
 CONFIDENCE_THRESHOLD = 0.89
 
 # OpenAI API
 API_KEY = settings.OPENAI_API_KEY
 API_URL = "https://api.openai.com/v1/chat/completions"
+API_TIMEOUT = 5
 
 DEFAULT_PAYLOAD = {
    "model": "gpt-4.1",
