@@ -62,7 +62,8 @@ def identify_guest(person_crop):
       django_file = ContentFile(io_buffer.getvalue(), name='log_capture.jpg')
 
       # Create log with image
-      log, created = Log.objects.get_or_create(visitor=visitor, image=django_file)
+      log, created = Log.objects.get_or_create(visitor=visitor)
+      print(created)
       if created:
          log.image = django_file
          log.save()
