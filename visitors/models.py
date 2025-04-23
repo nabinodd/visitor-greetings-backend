@@ -5,6 +5,7 @@ from server_visitor_greetings.models import TimestampedModel
 
 
 class Visitor(TimestampedModel):
+   addressing = models.CharField(max_length=255, null=True, blank=True)
    name = models.CharField(max_length=255)
    image = models.ImageField(upload_to='visitor_images/')
    image_cropped = models.ImageField(

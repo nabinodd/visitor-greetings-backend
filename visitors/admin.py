@@ -1,12 +1,15 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Log, Visitor, Guest
+from .models import Guest, Log, Visitor
 
 
 @admin.register(Visitor)
 class VisitorAdmin(admin.ModelAdmin):
-   list_display = ('id', 'name', 'calc_emb', 'image_cropped_preview')
+   list_display = (
+      'id', 'addressing', 'name', 'calc_emb', 
+      'image_cropped_preview'
+   )
    list_display_links = list_display
    search_fields = ('name',)
 
