@@ -8,13 +8,14 @@ from ultralytics import YOLO
 
 from visitors.models import Guest
 
-from .configurations import (DNN_FACE_DETECTION_CONFIDENCE,
+from .configurations import (BOX_HEIGHT, BOX_WIDTH,
+                             DNN_FACE_DETECTION_CONFIDENCE,
                              ENABLE_SIZE_REPORTING, FACE_BLUR_THRESHOLD,
                              FONT_SCALE, FONT_THICKNESS, GPU_ACCELERATION,
                              GUSSAIN_BLUR_KERNEL_SIZE, HEIGHT_THRESHOLD,
                              OVERLAY_ONLY_TIME, PERSON_BLUR_THRESHOLD,
-                             WIDTH_THRESHOLD, YOLO_MODEL_PATH,
-                             YOLO_PERSON_CONFIDENCE_THRESHOLD,now)
+                             WIDTH_THRESHOLD, Y_DOWN, YOLO_MODEL_PATH,
+                             YOLO_PERSON_CONFIDENCE_THRESHOLD, now)
 from .identify_guests import identify_guest
 
 # Face detection model (OpenCV DNN)
@@ -23,7 +24,8 @@ DNN_MODEL_PATH = 'res10_300x300_ssd_iter_140000_fp16.caffemodel'
 dnn_net = cv2.dnn.readNetFromCaffe(DNN_PROTO_PATH, DNN_MODEL_PATH)
 
 CENTER_OVERLAP_THRESHOLD = 0.9
-SAFE_ZONE_MARGIN = 0.3
+
+
 
 overlay_only_started_time = None
 
@@ -81,8 +83,6 @@ def calculate_overlap_ratio(box1, box2):
    return overlap_area / box1_area if box1_area > 0 else 0
 
 def capture_guest_image(cap, model, overlay_only=False):
-   """Capture a sharp face in the center using an existing camera and model."""
-
    global overlay_only_started_time
    if overlay_only and overlay_only_started_time is None:
       overlay_only_started_time = time.time()
@@ -99,17 +99,33 @@ def capture_guest_image(cap, model, overlay_only=False):
       display_frame = frame.copy()
       frame_h, frame_w = frame.shape[:2]
 
-      # Define center safe zone
-      sz_x1 = int(frame_w * SAFE_ZONE_MARGIN)
-      sz_y1 = int(frame_h * SAFE_ZONE_MARGIN)
-      sz_x2 = int(frame_w * (1 - SAFE_ZONE_MARGIN))
-      sz_y2 = int(frame_h * (1 - SAFE_ZONE_MARGIN))
-      cv2.rectangle(display_frame, (sz_x1, sz_y1), (sz_x2, sz_y2), (0, 255, 255), 2)
+      # 🔥 Custom center-safe zone box
+      box_w = int(frame_w * BOX_WIDTH)
+      box_h = int(frame_h * BOX_HEIGHT)
+      box_x1 = (frame_w - box_w) // 2
+      box_x2 = box_x1 + box_w
+      box_y1 = int(frame_h * Y_DOWN)
+      box_y2 = box_y1 + box_h
+      # Draw the yellow rectangle
+      box_color = (0, 255, 255)
+      cv2.rectangle(display_frame, (box_x1, box_y1), (box_x2, box_y2), box_color, 2)
+
+      # Add "Your face here" text inside the box (above lower breadth)
+      text = "Your face here"
+      font = cv2.FONT_HERSHEY_SIMPLEX
+      font_scale = FONT_SCALE  # Use your defined font scale
+      thickness = FONT_THICKNESS
+      (text_width, text_height), _ = cv2.getTextSize(text, font, font_scale, thickness)
+
+      # Center horizontally, position above lower breadth
+      text_x = box_x1 + (box_w - text_width) // 2
+      text_y = box_y2 - 10  # 10 pixels above the bottom edge of the box
+
+      cv2.putText(display_frame, text, (text_x, text_y), font, font_scale, box_color, thickness)
 
       close_persons = []
       far_persons = []
 
-      # Person detection
       results = model(frame, classes=[0], conf=YOLO_PERSON_CONFIDENCE_THRESHOLD, verbose=False, device=GPU_ACCELERATION)
       for result in results:
          for box in result.boxes:
@@ -123,14 +139,12 @@ def capture_guest_image(cap, model, overlay_only=False):
                else:
                   far_persons.append((x1, y1, x2, y2))
 
-      # Handle far persons (blur + red boxes)
       for x1, y1, x2, y2 in far_persons:
          person_area = display_frame[y1:y2, x1:x2]
          blurred = cv2.GaussianBlur(person_area, GUSSAIN_BLUR_KERNEL_SIZE, 0)
          display_frame[y1:y2, x1:x2] = blurred
          cv2.rectangle(display_frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
-      # Handle close persons
       if len(close_persons) == 1:
          x1, y1, x2, y2, person_crop = close_persons[0]
          sharpness = calculate_sharpness(person_crop)
@@ -145,10 +159,8 @@ def capture_guest_image(cap, model, overlay_only=False):
                if face_crop is not None:
                   face_sharpness = calculate_sharpness(face_crop)
                   fx1, fy1, fx2, fy2 = face_box
-
-                  # Check face centering
                   abs_face_box = (x1 + fx1, y1 + fy1, x1 + fx2, y1 + fy2)
-                  face_overlap_ratio = calculate_overlap_ratio(abs_face_box, (sz_x1, sz_y1, sz_x2, sz_y2))
+                  face_overlap_ratio = calculate_overlap_ratio(abs_face_box, (box_x1, box_y1, box_x2, box_y2))
                   face_centered = face_overlap_ratio >= CENTER_OVERLAP_THRESHOLD
 
                   face_color = (0, 255, 0) if face_sharpness >= FACE_BLUR_THRESHOLD and face_centered else (0, 0, 255)
@@ -161,10 +173,7 @@ def capture_guest_image(cap, model, overlay_only=False):
                      cv2.waitKey(1000)
                      guest = save_guest_image(person_crop)
                      print(f"[SUCCESS @ {now()}]Captured sharp guest image with sharpness {sharpness:.2f}. Guest ID: {guest.id}")
-
                      identify_guest(person_crop)
-                     # cv2.imshow("Preview", display_frame)
-                     # cv2.waitKey(1000)
                      return guest
 
       elif len(close_persons) > 1:
@@ -172,7 +181,6 @@ def capture_guest_image(cap, model, overlay_only=False):
          for x1, y1, x2, y2, _ in close_persons:
                cv2.rectangle(display_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-      # Show ongoing preview
       cv2.imshow("Preview", display_frame)
       if cv2.waitKey(1) & 0xFF == ord('q'):
          return 'EXIT'
