@@ -9,7 +9,7 @@ from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 from PIL import Image
 
-from .models import Visitor, Log
+from .models import Visitor, Log, Guest
 from .utils import detect_and_crop_single_face
 
 
@@ -86,5 +86,11 @@ def delete_visitor_images(sender, instance, **kwargs):
 @receiver(post_delete, sender=Log)
 def delete_log_images(sender, instance, **kwargs):
    """Cleanup both original and cropped images when Visitor is deleted."""
+   if instance.image:
+      instance.image.delete(save=False)
+
+
+@receiver(post_delete, sender=Guest)
+def delete_guest_image(sender, instance, created, **kwargs):
    if instance.image:
       instance.image.delete(save=False)
