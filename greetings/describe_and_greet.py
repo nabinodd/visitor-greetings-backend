@@ -72,7 +72,7 @@ def generate_description(image_path):
          try:
                description = json.loads(response.json()["choices"][0]["message"]["content"])["description"]
                return description
-         except (KeyError, json.JSONDecodeError) as e:
+         except (KeyError, json.JSONDecodeError, TypeError) as e:
                print(f"❌ Error parsing GPT response: {e}")
       else:
          print(f"❌ GPT API error: {response.status_code}\n{response.text}")

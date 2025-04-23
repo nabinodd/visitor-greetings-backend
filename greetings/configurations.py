@@ -3,10 +3,16 @@ from django.conf import settings
 # YOLO model
 YOLO_MODEL_PATH = "yolov10n.pt"
 
-WIDTH_THRESHOLD = 800
-HEIGHT_THRESHOLD = 800
-BLUR_THRESHOLD = 48
-CONFIDENCE_THRESHOLD = 0.89
+WIDTH_THRESHOLD = 500
+HEIGHT_THRESHOLD = 100
+
+PERSON_BLUR_THRESHOLD = 30
+FACE_BLUR_THRESHOLD = 30
+
+DNN_FACE_DETECTION_CONFIDENCE = 0.9
+YOLO_PERSON_CONFIDENCE_THRESHOLD = 0.89
+
+ENABLE_SIZE_REPORTING = True
 
 # OpenAI API
 API_KEY = settings.OPENAI_API_KEY
@@ -52,6 +58,25 @@ USER_PROMPT_TEMPLATE = (
    Describe their outfit stylishly as they enter the U-S-Y-C 2025 entrance.
    '''
 )
+
+
+# SYSTEM_PROMPT = (
+#    '''
+#    You are an rude greeter at U-S-Y-C 2025. 
+#    Greet each guest by looking at their outfit, appearance and expression in a rude and dramatic way.
+#    Always end with greeting words.
+#    Be rude, disrespecting, and short in two sentences.
+#    '''
+# )
+
+# USER_PROMPT_TEMPLATE = (
+#    '''
+#    Greet the person in the image rudely. 
+#    Start with an insulting greeting like "Hey there", "Hello", "Welcome", etc.
+#    Describe their outfit terribly as they enter the U-S-Y-C 2025 entrance.
+#    '''
+# )
+
 
 # Piper TTS
 PIPER_MODEL_PATH = "piper-voices/en/ljspeech/medium/en_US-ljspeech-medium.onnx"

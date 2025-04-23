@@ -1,14 +1,23 @@
 from io import BytesIO
 
 import cv2
+import numpy as np
 from django.core.files.base import ContentFile
 from ultralytics import YOLO
 
 from visitors.models import Guest
 
-from .configurations import (BLUR_THRESHOLD, CONFIDENCE_THRESHOLD,
-                             HEIGHT_THRESHOLD, WIDTH_THRESHOLD,
-                             YOLO_MODEL_PATH)
+from .configurations import (DNN_FACE_DETECTION_CONFIDENCE,
+                             ENABLE_SIZE_REPORTING, FACE_BLUR_THRESHOLD,
+                             HEIGHT_THRESHOLD, PERSON_BLUR_THRESHOLD,
+                             WIDTH_THRESHOLD, YOLO_MODEL_PATH,
+                             YOLO_PERSON_CONFIDENCE_THRESHOLD)
+from .identify_guests import identify_guest
+
+# Face detection model (OpenCV DNN)
+DNN_PROTO_PATH = 'deploy.prototxt'
+DNN_MODEL_PATH = 'res10_300x300_ssd_iter_140000_fp16.caffemodel'
+dnn_net = cv2.dnn.readNetFromCaffe(DNN_PROTO_PATH, DNN_MODEL_PATH)
 
 
 def load_model():
@@ -35,8 +44,22 @@ def save_guest_image(image):
    guest = Guest.objects.create(image=django_file)
    return guest
 
+def detect_face(person_crop):
+   (h, w) = person_crop.shape[:2]
+   blob = cv2.dnn.blobFromImage(person_crop, 1.0, (300, 300), (104.0, 177.0, 123.0))
+   dnn_net.setInput(blob)
+   detections = dnn_net.forward()
+   for i in range(detections.shape[2]):
+      confidence = detections[0, 0, i, 2]
+      if confidence > DNN_FACE_DETECTION_CONFIDENCE:
+         box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
+         (x1, y1, x2, y2) = box.astype("int")
+         face_crop = person_crop[y1:y2, x1:x2]
+         return face_crop, (x1, y1, x2, y2)
+   return None, None
+
 def capture_guest_image(cap, model):
-   """Capture a sharp close person using an existing camera and model."""
+   """Capture a sharp close person and face using an existing camera and model."""
    while True:
       ret, frame = cap.read()
       if not ret:
@@ -46,15 +69,15 @@ def capture_guest_image(cap, model):
       close_persons = []
       far_persons = []
 
-      # Detection
-      results = model(frame, classes=[0], conf=CONFIDENCE_THRESHOLD, verbose=False, device='mps')
-
+      # Person detection
+      results = model(frame, classes=[0], conf=YOLO_PERSON_CONFIDENCE_THRESHOLD, verbose=False, device='mps')
       for result in results:
          for box in result.boxes:
                x1, y1, x2, y2 = map(int, box.xyxy[0])
                width, height = x2 - x1, y2 - y1
                person_crop = frame[y1:y2, x1:x2]
-               # print(width, height)
+               if ENABLE_SIZE_REPORTING:
+                  print(width, height)
                if width >= WIDTH_THRESHOLD and height >= HEIGHT_THRESHOLD:
                   close_persons.append((x1, y1, x2, y2, person_crop))
                else:
@@ -71,21 +94,30 @@ def capture_guest_image(cap, model):
       if len(close_persons) == 1:
          x1, y1, x2, y2, person_crop = close_persons[0]
          sharpness = calculate_sharpness(person_crop)
+         person_color = (0, 255, 0) if sharpness >= PERSON_BLUR_THRESHOLD else (0, 0, 255)
+         cv2.rectangle(display_frame, (x1, y1), (x2, y2), person_color, 2)
+         cv2.putText(display_frame, f'Person Sharpness: {sharpness:.2f}', (x1 + 10, y1 + 50),
+                     cv2.FONT_HERSHEY_SIMPLEX, 1, person_color, 2)
 
-         # Green box + sharpness
-         cv2.rectangle(display_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-         cv2.putText(display_frame, f'Sharpness: {sharpness:.2f}', (x1 + 10, y1 + 50),
-                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+         if sharpness >= PERSON_BLUR_THRESHOLD:
+               # Wait for sharp face detection inside person
+               face_crop, face_box = detect_face(person_crop)
+               if face_crop is not None:
+                  face_sharpness = calculate_sharpness(face_crop)
+                  fx1, fy1, fx2, fy2 = face_box
+                  face_color = (0, 255, 0) if face_sharpness >= FACE_BLUR_THRESHOLD else (0, 0, 255)
+                  cv2.rectangle(display_frame, (x1 + fx1, y1 + fy1), (x1 + fx2, y1 + fy2), face_color, 2)
+                  cv2.putText(display_frame, f'Face Sharpness: {face_sharpness:.2f}', (x1 + fx1, y1 + fy2 + 30),
+                              cv2.FONT_HERSHEY_SIMPLEX, 1, face_color, 2)
 
-         if sharpness >= BLUR_THRESHOLD:
-               guest = save_guest_image(person_crop)
-               print(f"Captured sharp guest image with sharpness {sharpness:.2f}. Guest ID: {guest.id}")
+                  if face_sharpness >= FACE_BLUR_THRESHOLD:
+                     guest = save_guest_image(person_crop)
+                     print(f"Captured sharp guest image with sharpness {sharpness:.2f}. Guest ID: {guest.id}")
 
-               # Show last frame (predictable display before TTS)
-               cv2.imshow("Preview", display_frame)
-               cv2.waitKey(1000)  # Display for 1 second
-
-               return guest
+                     identify_guest(person_crop)
+                     cv2.imshow("Preview", display_frame)
+                     cv2.waitKey(1000)
+                     return guest
 
       elif len(close_persons) > 1:
          display_frame = cv2.GaussianBlur(display_frame, (51, 51), 0)
