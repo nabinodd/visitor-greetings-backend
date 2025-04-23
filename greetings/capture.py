@@ -11,9 +11,10 @@ from visitors.models import Guest
 from .configurations import (DNN_FACE_DETECTION_CONFIDENCE,
                              ENABLE_SIZE_REPORTING, FACE_BLUR_THRESHOLD,
                              FONT_SCALE, FONT_THICKNESS, GPU_ACCELERATION,
-                             HEIGHT_THRESHOLD, OVERLAY_ONLY_TIME,
-                             PERSON_BLUR_THRESHOLD, WIDTH_THRESHOLD,
-                             YOLO_MODEL_PATH, YOLO_PERSON_CONFIDENCE_THRESHOLD)
+                             GUSSAIN_BLUR_KERNEL_SIZE, HEIGHT_THRESHOLD,
+                             OVERLAY_ONLY_TIME, PERSON_BLUR_THRESHOLD,
+                             WIDTH_THRESHOLD, YOLO_MODEL_PATH,
+                             YOLO_PERSON_CONFIDENCE_THRESHOLD)
 from .identify_guests import identify_guest
 
 # Face detection model (OpenCV DNN)
@@ -125,7 +126,7 @@ def capture_guest_image(cap, model, overlay_only=False):
       # Handle far persons (blur + red boxes)
       for x1, y1, x2, y2 in far_persons:
          person_area = display_frame[y1:y2, x1:x2]
-         blurred = cv2.GaussianBlur(person_area, (51, 51), 0)
+         blurred = cv2.GaussianBlur(person_area, GUSSAIN_BLUR_KERNEL_SIZE, 0)
          display_frame[y1:y2, x1:x2] = blurred
          cv2.rectangle(display_frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
@@ -136,7 +137,7 @@ def capture_guest_image(cap, model, overlay_only=False):
 
          person_color = (0, 255, 0) if sharpness >= PERSON_BLUR_THRESHOLD else (0, 0, 255)
          cv2.rectangle(display_frame, (x1, y1), (x2, y2), person_color, 2)
-         cv2.putText(display_frame, f'Person Sharpness: {sharpness:.2f}', (x1 + 10, y1 + 50),
+         cv2.putText(display_frame, f'Person Analysis: {sharpness:.2f}', (x1 + 10, y1 + 50),
                      cv2.FONT_HERSHEY_SIMPLEX, FONT_SCALE, person_color, FONT_THICKNESS)
 
          if sharpness >= PERSON_BLUR_THRESHOLD:
@@ -152,20 +153,22 @@ def capture_guest_image(cap, model, overlay_only=False):
 
                   face_color = (0, 255, 0) if face_sharpness >= FACE_BLUR_THRESHOLD and face_centered else (0, 0, 255)
                   cv2.rectangle(display_frame, (abs_face_box[0], abs_face_box[1]), (abs_face_box[2], abs_face_box[3]), face_color, 2)
-                  cv2.putText(display_frame, f'Face Sharpness: {face_sharpness:.2f}', (abs_face_box[0], abs_face_box[3] + 30),
+                  cv2.putText(display_frame, f'Face Analysis: {face_sharpness:.2f}', (abs_face_box[0], abs_face_box[3] + 30),
                               cv2.FONT_HERSHEY_SIMPLEX, FONT_SCALE, face_color, FONT_THICKNESS)
 
                   if face_sharpness >= FACE_BLUR_THRESHOLD and face_centered and not overlay_only:
+                     cv2.imshow("Preview", display_frame)
+                     cv2.waitKey(1000)
                      guest = save_guest_image(person_crop)
                      print(f"Captured sharp guest image with sharpness {sharpness:.2f}. Guest ID: {guest.id}")
 
                      identify_guest(person_crop)
-                     cv2.imshow("Preview", display_frame)
-                     cv2.waitKey(1000)
+                     # cv2.imshow("Preview", display_frame)
+                     # cv2.waitKey(1000)
                      return guest
 
       elif len(close_persons) > 1:
-         display_frame = cv2.GaussianBlur(display_frame, (51, 51), 0)
+         display_frame = cv2.GaussianBlur(display_frame, GUSSAIN_BLUR_KERNEL_SIZE, 0)
          for x1, y1, x2, y2, _ in close_persons:
                cv2.rectangle(display_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 

@@ -20,6 +20,8 @@ FONT_THICKNESS=1
 
 OVERLAY_ONLY_TIME=10
 
+GUSSAIN_BLUR_KERNEL_SIZE=(11, 11)
+
 # OpenAI API
 API_KEY = settings.OPENAI_API_KEY
 API_URL = "https://api.openai.com/v1/chat/completions"
