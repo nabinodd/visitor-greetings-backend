@@ -91,6 +91,6 @@ def delete_log_images(sender, instance, **kwargs):
 
 
 @receiver(post_delete, sender=Guest)
-def delete_guest_image(sender, instance, created, **kwargs):
+def delete_guest_image(sender, instance, **kwargs):
    if instance.image:
       instance.image.delete(save=False)

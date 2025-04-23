@@ -1,3 +1,5 @@
+#'tensorflow[and-cuda]' for cuda acceleration
+
 deepface==0.0.93
 Django==5.2
 django-cors-headers==4.7.0
@@ -15,3 +17,4 @@ tensorflow==2.19.0
 tensorflow-macos==2.16.2
 tf_keras==2.19.0
 ultralytics==8.3.111
+
