@@ -25,6 +25,8 @@ dnn_net = cv2.dnn.readNetFromCaffe(DNN_PROTO_PATH, DNN_MODEL_PATH)
 
 CENTER_OVERLAP_THRESHOLD = 0.9
 
+# cv2.namedWindow('Preview', cv2.WINDOW_NORMAL)
+# cv2.setWindowProperty('Preview', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
 
 overlay_only_started_time = None
