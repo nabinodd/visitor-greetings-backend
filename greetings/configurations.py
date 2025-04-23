@@ -1,3 +1,5 @@
+import time
+
 from django.conf import settings
 
 # YOLO model
@@ -68,26 +70,9 @@ USER_PROMPT_TEMPLATE = (
 )
 
 
-# SYSTEM_PROMPT = (
-#    '''
-#    You are an rude greeter at U-S-Y-C 2025. 
-#    Greet each guest by looking at their outfit, appearance and expression in a rude and dramatic way.
-#    Always end with greeting words.
-#    Be rude, disrespecting, and short in two sentences.
-#    '''
-# )
-
-# USER_PROMPT_TEMPLATE = (
-#    '''
-#    Greet the person in the image rudely. 
-#    Start with an insulting greeting like "Hey there", "Hello", "Welcome", etc.
-#    Describe their outfit terribly as they enter the U-S-Y-C 2025 entrance.
-#    '''
-# )
-
-
-# Piper TTS
 PIPER_MODEL_PATH = "piper-voices/en/ljspeech/medium/en_US-ljspeech-medium.onnx"
 
-# Image preprocessing
 IMAGE_RESOLUTION = 1024
+
+def now():
+   return int(time.time())

@@ -14,7 +14,7 @@ from .configurations import (DNN_FACE_DETECTION_CONFIDENCE,
                              GUSSAIN_BLUR_KERNEL_SIZE, HEIGHT_THRESHOLD,
                              OVERLAY_ONLY_TIME, PERSON_BLUR_THRESHOLD,
                              WIDTH_THRESHOLD, YOLO_MODEL_PATH,
-                             YOLO_PERSON_CONFIDENCE_THRESHOLD)
+                             YOLO_PERSON_CONFIDENCE_THRESHOLD,now)
 from .identify_guests import identify_guest
 
 # Face detection model (OpenCV DNN)
@@ -33,7 +33,7 @@ def load_model():
 def initialize_camera(camera_index=0):
    cap = cv2.VideoCapture(camera_index)
    if not cap.isOpened():
-      raise RuntimeError("Error: Cannot open webcam.")
+      raise RuntimeError(f"[ERROR @ {now()}] Cannot open webcam.")
    return cap
 
 def warmup_camera(cap, frames=30):
@@ -160,7 +160,7 @@ def capture_guest_image(cap, model, overlay_only=False):
                      cv2.imshow("Preview", display_frame)
                      cv2.waitKey(1000)
                      guest = save_guest_image(person_crop)
-                     print(f"Captured sharp guest image with sharpness {sharpness:.2f}. Guest ID: {guest.id}")
+                     print(f"[SUCCESS @ {now()}]Captured sharp guest image with sharpness {sharpness:.2f}. Guest ID: {guest.id}")
 
                      identify_guest(person_crop)
                      # cv2.imshow("Preview", display_frame)

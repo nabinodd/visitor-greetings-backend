@@ -11,7 +11,7 @@ from piper.voice import PiperVoice
 
 from .configurations import (API_KEY, API_TIMEOUT, API_URL, DEFAULT_PAYLOAD,
                              IMAGE_RESOLUTION, PIPER_MODEL_PATH, SYSTEM_PROMPT,
-                             USER_PROMPT_TEMPLATE)
+                             USER_PROMPT_TEMPLATE, now)
 
 # Prefetched fallback greetings
 prefetched_greetings = [
@@ -73,22 +73,22 @@ def generate_description(image_path):
                description = json.loads(response.json()["choices"][0]["message"]["content"])["description"]
                return description
          except (KeyError, json.JSONDecodeError, TypeError) as e:
-               print(f"❌ Error parsing GPT response: {e}")
+               print(f"[ERROR @ {now()}] Error parsing GPT response: {e}")
       else:
-         print(f"❌ GPT API error: {response.status_code}\n{response.text}")
+         print(f"[ERROR @ {now()}] GPT API error: {response.status_code}\n{response.text}")
 
    except requests.exceptions.Timeout:
-      print("❌ GPT API request timed out.")
+      print(f"[ERROR @ {now()}] GPT API request timed out.")
 
    # Fallback: Pick a random greeting
    fallback = random.choice(prefetched_greetings)
-   print(f"⚠️ Using fallback greeting: {fallback}")
+   print(f"[WARNING @ {now()}] Using fallback greeting: {fallback}")
    return fallback
 
 def speak(text):
    """Speak the given text using Piper TTS."""
    voice = PiperVoice.load(PIPER_MODEL_PATH)
-   print(f"[TTS] {text}")
+   print(f"[TTS @ {now()}] {text}")
    stream = sd.OutputStream(samplerate=voice.config.sample_rate, channels=1, dtype='int16')
    stream.start()
    for audio_bytes in voice.synthesize_stream_raw(text):

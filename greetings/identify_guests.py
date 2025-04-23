@@ -8,6 +8,8 @@ from pgvector.django import CosineDistance
 
 from visitors.models import Log, Visitor
 
+from .configurations import now
+
 # Face detection model (OpenCV DNN)
 DNN_PROTO_PATH = 'deploy.prototxt'
 DNN_MODEL_PATH = 'res10_300x300_ssd_iter_140000_fp16.caffemodel'
@@ -18,6 +20,7 @@ FACE_IDENTIFICATION_THRESHOLD = 0.4
 
 # Load face detector once
 dnn_net = cv2.dnn.readNetFromCaffe(DNN_PROTO_PATH, DNN_MODEL_PATH)
+
 
 def detect_face(person_crop):
    """
@@ -44,13 +47,11 @@ def identify_guest(person_crop):
    """
    face_crop = detect_face(person_crop)
    if face_crop is None:
-      print("[❌ FACE NOT FOUND] No face detected.")
+      print(f"[ERROR @ {now()}] FACE NOT FOUND] No face detected.")
       return None
 
-   # Get embedding using DeepFace
    embedding = DeepFace.represent(face_crop, model_name='ArcFace', enforce_detection=False)[0]["embedding"]
 
-   # Match embedding with Visitor DB (using pgvector)
    visitors = Visitor.objects.annotate(distance=CosineDistance('embedding', embedding)).order_by('distance')
    if visitors.exists() and visitors.first().distance <= FACE_IDENTIFICATION_THRESHOLD:
       visitor = visitors.first()
@@ -62,8 +63,8 @@ def identify_guest(person_crop):
 
       # Create log with image
       Log.objects.create(visitor=visitor, image=django_file)
-      print(f"[✅ IDENTIFIED] {visitor.name} has been logged with image.")
+      print(f"[SUCCESS @ {now()}] IDENTIFIED] {visitor.name} has been logged with image.")
       return visitor
    else:
-      print("[❌ NOT IDENTIFIED] Face detected but no matching visitor.")
+      print(f"[ERROR @ {now()}] NOT IDENTIFIED] Face detected but no matching visitor.")
       return None
