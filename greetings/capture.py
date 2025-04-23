@@ -175,8 +175,8 @@ def capture_guest_image(cap, model, overlay_only=False):
                      cv2.waitKey(1000)
                      guest = save_guest_image(person_crop)
                      print(f"[SUCCESS @ {now()}]Captured sharp guest image with sharpness {sharpness:.2f}. Guest ID: {guest.id}")
-                     identify_guest(person_crop)
-                     return guest
+                     visitor = identify_guest(person_crop)
+                     return guest, visitor
 
       elif len(close_persons) > 1:
          display_frame = cv2.GaussianBlur(display_frame, GUSSAIN_BLUR_KERNEL_SIZE, 0)
@@ -185,4 +185,6 @@ def capture_guest_image(cap, model, overlay_only=False):
 
       cv2.imshow("Preview", display_frame)
       if cv2.waitKey(1) & 0xFF == ord('q'):
-         return 'EXIT'
+         return 'EXIT', None
+
+   return None, None

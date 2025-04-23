@@ -18,7 +18,7 @@ class Command(BaseCommand):
       self.stdout.write("Starting guest greeting loop...")
 
       # Initialize camera and model ONCE
-      cap = initialize_camera(camera_index=0)
+      cap = initialize_camera(camera_index=1)
       warmup_camera(cap)
       model = load_model()
 
@@ -27,7 +27,7 @@ class Command(BaseCommand):
                self.stdout.write(self.style.HTTP_REDIRECT(f"[INFO @ {now()}] Looking for the next guest..."))
                flush_camera(cap, frames=10)
 
-               guest = capture_guest_image(cap, model)
+               guest, visitor = capture_guest_image(cap, model)
 
                if guest == "EXIT":
                   self.stdout.write(self.style.WARNING(f"[WARNING @ {now()}] Exiting guest greeting loop."))
@@ -39,7 +39,7 @@ class Command(BaseCommand):
 
                self.stdout.write(self.style.SUCCESS(f"[SUCCESS @ {now()}] Guest captured. Guest ID: {guest.id}"))
 
-               description = describe_and_greet(guest.image.path)
+               description = describe_and_greet(guest.image.path, visitor)
 
                if description:
                   guest.greeting_text = description

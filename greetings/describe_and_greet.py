@@ -10,8 +10,12 @@ import sounddevice as sd
 from piper.voice import PiperVoice
 
 from .configurations import (API_KEY, API_TIMEOUT, API_URL, DEFAULT_PAYLOAD,
-                             IMAGE_RESOLUTION, PIPER_MODEL_PATH, SYSTEM_PROMPT,
-                             USER_PROMPT_TEMPLATE, now)
+                             DEFAULT_SYSTEM_PROMPT,
+                             DEFAULT_USER_PROMPT_TEMPLATE,
+                             DEFAULT_VISITOR_SYSTEM_PROMPT,
+                             DEFAULT_VISITOR_USER_PROMPT_TEMPLATE,
+                             IMAGE_RESOLUTION, PIPER_MODEL_PATH, now, SPECIAL_VISITOR_USER_PROMPT_TEMPLATE,
+                             SPECIALT_VISITOR_SYSTEM_PROMPT)
 
 # Prefetched fallback greetings
 prefetched_greetings = [
@@ -39,10 +43,24 @@ def preprocess_image(image_path, max_size=IMAGE_RESOLUTION):
    _, buffer = cv2.imencode('.jpg', resized)
    return base64.b64encode(buffer).decode('utf-8')
 
-def generate_description(image_path):
+def generate_description(image_path, visitor):
    """Send image to OpenAI API and get a flattering description or fallback greeting."""
    base64_image = preprocess_image(image_path)
-   user_prompt = USER_PROMPT_TEMPLATE  # Assuming no formatting needed
+
+   if visitor is not None and not visitor.addressing:
+      api_timeout = 10
+      SYSTEM_PROMPT = DEFAULT_VISITOR_SYSTEM_PROMPT
+      USER_PROMPT_TEMPLATE = DEFAULT_VISITOR_USER_PROMPT_TEMPLATE.format(name=visitor.name)
+
+   elif visitor is not None and visitor.addressing:
+      api_timeout = 10
+      SYSTEM_PROMPT = SPECIALT_VISITOR_SYSTEM_PROMPT
+      USER_PROMPT_TEMPLATE = SPECIAL_VISITOR_USER_PROMPT_TEMPLATE.format(name=visitor.name, addressing=visitor.addressing)
+
+   else:
+      api_timeout = API_TIMEOUT
+      SYSTEM_PROMPT = DEFAULT_SYSTEM_PROMPT
+      USER_PROMPT_TEMPLATE = DEFAULT_USER_PROMPT_TEMPLATE
 
    payload = {
       "model": DEFAULT_PAYLOAD["model"],
@@ -53,7 +71,7 @@ def generate_description(image_path):
          {
                "role": "user",
                "content": [
-                  {"type": "text", "text": user_prompt},
+                  {"type": "text", "text": USER_PROMPT_TEMPLATE},
                   {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
                ]
          }
@@ -66,7 +84,7 @@ def generate_description(image_path):
    }
 
    try:
-      response = requests.post(API_URL, headers=headers, json=payload, timeout = API_TIMEOUT)
+      response = requests.post(API_URL, headers=headers, json=payload, timeout = api_timeout)
 
       if response.status_code == 200:
          try:
@@ -96,9 +114,9 @@ def speak(text):
    stream.stop()
    stream.close()
 
-def describe_and_greet(image_path):
+def describe_and_greet(image_path, vistor):
    """Generate a description and speak it."""
-   description = generate_description(image_path)
+   description = generate_description(image_path, vistor)
    if description:
       speak(description)
    return description

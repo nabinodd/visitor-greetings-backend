@@ -14,7 +14,7 @@ Y_DOWN = 0.1     # 10% from top
 BOX_HEIGHT = 0.3  # 30% of frame height
 BOX_WIDTH = 0.5   # 50% of frame width
 
-PERSON_BLUR_THRESHOLD = 50
+PERSON_BLUR_THRESHOLD = 10
 FACE_BLUR_THRESHOLD = 10
 
 DNN_FACE_DETECTION_CONFIDENCE = 0.9
@@ -57,7 +57,7 @@ DEFAULT_PAYLOAD = {
    }
 }
 
-SYSTEM_PROMPT = (
+DEFAULT_SYSTEM_PROMPT = (
    '''
    You are an enthusiastic greeter at U-S-Y-C 2025. 
    Greet each guest by looking at their outfit, appearance and expression in a stylish and dramatic way.
@@ -66,11 +66,46 @@ SYSTEM_PROMPT = (
    '''
 )
 
-USER_PROMPT_TEMPLATE = (
+DEFAULT_USER_PROMPT_TEMPLATE = (
    '''
    Greet the person in the image warmly. 
    Start with an enthusiastic greeting like "Hey there", "Hello", "Welcome", etc.
    Describe their outfit stylishly as they enter the U-S-Y-C 2025 entrance.
+   '''
+)
+
+
+DEFAULT_VISITOR_SYSTEM_PROMPT = (
+   '''
+   You are an enthusiastic greeter at U-S-Y-C 2025. 
+   Greet each guest by looking at their outfit, appearence and expression in a stylish and dramatic way.
+   Always end with greeting words.
+   Be warm, flattering, and short in two sentence. 
+   '''
+)
+
+DEFAULT_VISITOR_USER_PROMPT_TEMPLATE = (
+   '''
+   Name of the person is {name}, greet them with their first name 
+   and welcome to them the U-S-Y-C 2025 entrance! Describe their outfit stylishly.
+   '''
+)
+
+
+
+SPECIALT_VISITOR_SYSTEM_PROMPT = (
+   '''
+   You are an enthusiastic greeter at U-S-Y-C 2025. 
+   Greet each guest by looking at their outfit, appearence and expression in a stylish and dramatic way.
+   Always end with greeting words.
+   Be warm, flattering, and short in two sentence. 
+   '''
+)
+
+SPECIAL_VISITOR_USER_PROMPT_TEMPLATE = (
+   '''
+   Name of the person is {name}, and addressed by {addressing} greet them with their full name name 
+   and welcome to them the U-S-Y-C 2025 entrance! Describe their outfit stylishly.
    '''
 )
 
