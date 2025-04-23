@@ -9,9 +9,9 @@ import requests.exceptions
 import sounddevice as sd
 from piper.voice import PiperVoice
 
-from .configurations import (API_KEY, API_URL, DEFAULT_PAYLOAD,
+from .configurations import (API_KEY, API_TIMEOUT, API_URL, DEFAULT_PAYLOAD,
                              IMAGE_RESOLUTION, PIPER_MODEL_PATH, SYSTEM_PROMPT,
-                             USER_PROMPT_TEMPLATE, API_TIMEOUT)
+                             USER_PROMPT_TEMPLATE)
 
 # Prefetched fallback greetings
 prefetched_greetings = [
