@@ -52,7 +52,7 @@ while True:
                cv2.destroyAllWindows()
                exit()
 
-   cv2.imshow("Preview", frame)
+   cv2.imshow("USYC_2025", frame)
    if cv2.waitKey(1) & 0xFF == ord('q'):
       break
 

@@ -1,6 +1,6 @@
 import time
 from io import BytesIO
-
+import os
 import cv2
 import numpy as np
 from django.core.files.base import ContentFile
@@ -17,7 +17,7 @@ from .configurations import (BOX_HEIGHT, BOX_WIDTH,
                              WIDTH_THRESHOLD, Y_DOWN, YOLO_MODEL_PATH,
                              YOLO_PERSON_CONFIDENCE_THRESHOLD, now)
 from .identify_guests import identify_guest
-
+is_fullscreen = False
 # Face detection model (OpenCV DNN)
 DNN_PROTO_PATH = 'deploy.prototxt'
 DNN_MODEL_PATH = 'res10_300x300_ssd_iter_140000_fp16.caffemodel'
@@ -25,8 +25,8 @@ dnn_net = cv2.dnn.readNetFromCaffe(DNN_PROTO_PATH, DNN_MODEL_PATH)
 
 CENTER_OVERLAP_THRESHOLD = 0.9
 
-cv2.namedWindow('Preview', cv2.WINDOW_NORMAL)
-cv2.setWindowProperty('Preview', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+cv2.namedWindow('USYC_2025', cv2.WINDOW_NORMAL)
+cv2.setWindowProperty('USYC_2025', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
 
 overlay_only_started_time = None
@@ -85,6 +85,7 @@ def calculate_overlap_ratio(box1, box2):
    return overlap_area / box1_area if box1_area > 0 else 0
 
 def capture_guest_image(cap, model, overlay_only=False):
+   global is_fullscreen
    global overlay_only_started_time
    if overlay_only and overlay_only_started_time is None:
       overlay_only_started_time = time.time()
@@ -171,7 +172,7 @@ def capture_guest_image(cap, model, overlay_only=False):
                               cv2.FONT_HERSHEY_SIMPLEX, FONT_SCALE, face_color, FONT_THICKNESS)
 
                   if face_sharpness >= FACE_BLUR_THRESHOLD and face_centered and not overlay_only:
-                     cv2.imshow("Preview", display_frame)
+                     cv2.imshow("USYC_2025", display_frame)
                      cv2.waitKey(1000)
                      guest = save_guest_image(person_crop)
                      print(f"[SUCCESS @ {now()}]Captured sharp guest image with sharpness {sharpness:.2f}. Guest ID: {guest.id}")
@@ -183,7 +184,10 @@ def capture_guest_image(cap, model, overlay_only=False):
          for x1, y1, x2, y2, _ in close_persons:
                cv2.rectangle(display_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-      cv2.imshow("Preview", display_frame)
+      cv2.imshow("USYC_2025", display_frame)
+      if not is_fullscreen:
+         os.system('wmctrl -r USYC_2025 -b add,maximized_vert,maximized_horz')
+         is_fullscreen = True
       if cv2.waitKey(1) & 0xFF == ord('q'):
          return 'EXIT', None
 
