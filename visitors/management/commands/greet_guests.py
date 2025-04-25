@@ -18,7 +18,7 @@ class Command(BaseCommand):
       self.stdout.write("Starting guest greeting loop...")
 
       # Initialize camera and model ONCE
-      cap = initialize_camera(camera_index=1)
+      cap = initialize_camera(camera_index=0)
       warmup_camera(cap)
       model = load_model()
 
