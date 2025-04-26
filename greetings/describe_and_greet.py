@@ -14,8 +14,9 @@ from .configurations import (API_KEY, API_TIMEOUT, API_URL, DEFAULT_PAYLOAD,
                              DEFAULT_USER_PROMPT_TEMPLATE,
                              DEFAULT_VISITOR_SYSTEM_PROMPT,
                              DEFAULT_VISITOR_USER_PROMPT_TEMPLATE,
-                             IMAGE_RESOLUTION, PIPER_MODEL_PATH, now, SPECIAL_VISITOR_USER_PROMPT_TEMPLATE,
-                             SPECIALT_VISITOR_SYSTEM_PROMPT)
+                             IMAGE_RESOLUTION, PIPER_MODEL_PATH,
+                             SPECIAL_VISITOR_USER_PROMPT_TEMPLATE,
+                             SPECIALT_VISITOR_SYSTEM_PROMPT, now)
 
 # Prefetched fallback greetings
 prefetched_greetings = [
@@ -114,9 +115,54 @@ def speak(text):
    stream.stop()
    stream.close()
 
+
+def display_description(description):
+   img = np.ones((200, 1920, 3), dtype=np.uint8) * 255  # White background
+
+   font = cv2.FONT_HERSHEY_SIMPLEX
+   font_scale = 1.5
+   thickness = 2
+   text_color = (0, 0, 255)
+
+   max_width = img.shape[1] - 100  # 50px padding on both sides
+   words = description.split(' ')
+   lines = []
+   current_line = ''
+
+   # Wrap words into lines that fit max_width
+   for word in words:
+      test_line = current_line + ' ' + word if current_line else word
+      (line_width, _), _ = cv2.getTextSize(test_line, font, font_scale, thickness)
+      if line_width <= max_width:
+         current_line = test_line
+      else:
+         lines.append(current_line)
+         current_line = word
+   if current_line:
+      lines.append(current_line)
+
+   # Calculate vertical positioning
+   total_height = len(lines) * (cv2.getTextSize('Test', font, font_scale, thickness)[0][1] + 20)
+   start_y = (img.shape[0] - total_height) // 2 + cv2.getTextSize('Test', font, font_scale, thickness)[0][1]
+
+   # Render each line
+   for i, line in enumerate(lines):
+      (line_width, line_height), _ = cv2.getTextSize(line, font, font_scale, thickness)
+      text_x = (img.shape[1] - line_width) // 2
+      text_y = start_y + i * (line_height + 20)
+      cv2.putText(img, line, (text_x, text_y), font, font_scale, text_color, thickness)
+
+   # Show the image in a new window
+   cv2.namedWindow('Greeting', cv2.WINDOW_NORMAL)
+   cv2.imshow('Greeting', img)
+   cv2.waitKey(500)
+   cv2.destroyWindow('Greeting')
+
+
 def describe_and_greet(image_path, vistor):
    """Generate a description and speak it."""
    description = generate_description(image_path, vistor)
    if description:
+      display_description(description)
       speak(description)
    return description
