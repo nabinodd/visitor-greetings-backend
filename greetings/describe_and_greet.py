@@ -156,7 +156,6 @@ def display_description(description):
    cv2.namedWindow('Greeting', cv2.WINDOW_NORMAL)
    cv2.imshow('Greeting', img)
    cv2.waitKey(500)
-   cv2.destroyWindow('Greeting')
 
 
 def describe_and_greet(image_path, vistor):
@@ -165,4 +164,6 @@ def describe_and_greet(image_path, vistor):
    if description:
       display_description(description)
       speak(description)
+   cv2.destroyWindow('Greeting')
+
    return description
